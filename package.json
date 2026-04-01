@@ -1,0 +1,12 @@
+{
+  "name": "devops-capstone",
+  "version": "1.0.0",
+  "description": "End-to-end DevOps pipeline project",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
