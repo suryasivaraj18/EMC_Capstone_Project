@@ -1,0 +1,60 @@
+pipeline {
+    agent {
+        label 'docker'
+    }
+
+    environment {
+        IMAGE_NAME = 'capestoneapp:v1'
+        DOCKERHUB_CREDENTIALS = 'dockerhub-tocken'
+        DOCKERHUB_REPO = 'suryasivaraj18/devops-capstone-project'
+    }
+
+    stages {
+        stage('CodeCheck') {
+            steps {
+                git branch: 'main', credentialsId: 'gittoken', url: 'https://github.com/suryasivaraj18/EMC_Capstone_Project.git'
+            }
+        }
+
+        stage('BuildImage') {
+            steps {
+                sh 'whoami'
+                sh 'docker build -t $IMAGE_NAME .'
+            }
+        }
+
+        stage('Docker Login and Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: "${DOCKERHUB_CREDENTIALS}",
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker tag $IMAGE_NAME $DOCKERHUB_REPO:latest
+                        docker push $DOCKERHUB_REPO:latest
+                    '''
+                }
+            }
+    }
+        stage('pull docker image') {
+            steps {
+                sh 'docker pull $DOCKERHUB_REPO:latest'
+            }
+        }
+        
+        stage ('container delete'){
+            steps {
+             sh 'docker stop emc-capstone-project'
+             sh 'docker rm emc-capstone-project'
+            }
+        }
+        
+       stage('Deploy Docker container') {
+            steps {
+                sh 'docker run -d -p 3000:3000 --name emc-capstone-project $DOCKERHUB_REPO:latest'
+            }
+        }
+    }
+}
